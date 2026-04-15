@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🍱 今天中午吃什么？</title>
+  <style>
+    :root {
+      --bg: #fff8f0;
+      --card-bg: #ffffff;
+      --primary: #ff6b35;
+      --primary-dark: #e85520;
+      --secondary: #ffa94d;
+      --text: #333;
+      --muted: #888;
+      --shadow: 0 8px 32px rgba(255,107,53,.15);
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 16px 60px;
+    }
+
+    /* ── Header ── */
+    header { text-align: center; margin-bottom: 36px; }
+    header h1 { font-size: 2.4rem; color: var(--primary); letter-spacing: 2px; }
+    header p  { color: var(--muted); margin-top: 6px; font-size: .95rem; }
+
+    /* ── Cards ── */
+    #result-area {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+      min-height: 200px;
+      margin-bottom: 40px;
+      width: 100%;
+      max-width: 960px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 28px 24px 22px;
+      width: 260px;
+      position: relative;
+      overflow: hidden;
+      animation: popIn .45s cubic-bezier(.22,1,.36,1) both;
+      cursor: default;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .card:hover { transform: translateY(-4px); box-shadow: 0 14px 40px rgba(255,107,53,.22); }
+    .card:nth-child(1) { animation-delay: .00s; }
+    .card:nth-child(2) { animation-delay: .08s; }
+    .card:nth-child(3) { animation-delay: .16s; }
+
+    @keyframes popIn {
+      from { opacity:0; transform: scale(.85) translateY(20px); }
+      to   { opacity:1; transform: scale(1)  translateY(0); }
+    }
+
+    .badge {
+      position: absolute;
+      top: -2px; right: -2px;
+      background: var(--primary);
+      color: #fff;
+      font-size: .72rem;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 0 var(--radius) 0 var(--radius);
+    }
+
+    .card-number {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--secondary);
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+    .card-name {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+    .card-location {
+      font-size: .82rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .card-location::before { content: "📍"; font-size: .9rem; }
+
+    /* Placeholder */
+    .placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      color: var(--muted);
+      gap: 12px;
+      font-size: 1rem;
+      padding: 40px 0;
+    }
+    .placeholder span { font-size: 3rem; }
+
+    /* ── Button ── */
+    #pick-btn {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      padding: 16px 48px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      cursor: pointer;
+      box-shadow: 0 6px 24px rgba(255,107,53,.35);
+      transition: transform .15s, box-shadow .15s;
+      user-select: none;
+    }
+    #pick-btn:hover  { transform: scale(1.05); box-shadow: 0 10px 32px rgba(255,107,53,.45); }
+    #pick-btn:active { transform: scale(.97); }
+
+    /* ── Editor ── */
+    details {
+      margin-top: 48px;
+      width: 100%;
+      max-width: 620px;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    summary {
+      padding: 16px 24px;
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--primary);
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+    }
+    summary::-webkit-details-marker { display:none; }
+    summary::before { content: "✏️"; }
+
+    .editor-body { padding: 0 24px 24px; }
+    .editor-body p { font-size: .85rem; color: var(--muted); margin-bottom: 10px; }
+    textarea {
+      width: 100%;
+      min-height: 240px;
+      border: 1.5px solid #eee;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: .9rem;
+      font-family: inherit;
+      resize: vertical;
+      outline: none;
+      transition: border-color .2s;
+    }
+    textarea:focus { border-color: var(--secondary); }
+    .editor-actions { display: flex; gap: 10px; margin-top: 10px; justify-content: flex-end; }
+    .btn-save {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 22px;
+      font-size: .9rem;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .btn-save:hover { background: var(--primary-dark); }
+    .btn-reset {
+      background: #f0f0f0;
+      color: var(--text);
+      border: none;
+      border-radius: 8px;
+      padding: 8px 18px;
+      font-size: .9rem;
+      cursor: pointer;
+    }
+    .btn-reset:hover { background: #e4e4e4; }
+
+    footer { margin-top: 48px; color: #ccc; font-size: .8rem; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🍱 今天中午吃什么？</h1>
+  <p>每次随机推荐 3 家餐厅，解救选择困难症</p>
+</header>
+
+<div id="result-area">
+  <div class="placeholder">
+    <span>🎲</span>
+    <p>点击下方按钮，开始随机！</p>
+  </div>
+</div>
+
+<button id="pick-btn" onclick="pick()">随机一下！</button>
+
+<details>
+  <summary>自定义餐厅列表</summary>
+  <div class="editor-body">
+    <p>每行一家餐厅，格式：<code>楼层/区域-餐厅名</code>（区域前缀可选）</p>
+    <textarea id="editor"></textarea>
+    <div class="editor-actions">
+      <button class="btn-reset" onclick="resetList()">恢复默认</button>
+      <button class="btn-save"  onclick="saveList()">保存</button>
+    </div>
+  </div>
+</details>
+
+<footer>数据来自 slot_machine_items.csv · 托管于 GitHub Pages</footer>
+
+<script>
+// ── 默认餐厅列表（来自 slot_machine_items.csv）──
+const DEFAULT_RESTAURANTS = [
+  "1号楼鹏成餐饮",
+  "2号楼亚惠",
+  "4号楼淮南牛肉汤",
+  "4号楼大王牛杂汤",
+  "4号楼汉堡王",
+  "4号楼渔吉日本料理",
+  "4号楼陇昌拉面",
+  "4号楼桃小源米线店",
+  "4号楼张亮麻辣烫",
+  "4号楼钟鼓楼陕西面",
+  "4号楼新南洋虾面",
+  "4号楼露缘麻辣香锅",
+  "4号楼把子肉",
+  "4号楼蛮虎茶餐厅",
+  "4号楼遇膳肪",
+  "4号楼大块牛肉饭",
+  "4号楼思味牛肉板面",
+  "4号楼熊家无二",
+  "5号楼鹏成餐饮",
+  "6号楼亚惠",
+  "6号楼参里虎和风拉面",
+  "6号楼湖南下饭菜",
+  "18号楼歪嘴香鸡公煲",
+  "18号楼米香拌饭",
+  "18号楼杨国福麻辣烫",
+  "18号楼老正和锅贴",
+  "18号楼吉品合",
+  "18号楼米村拌饭",
+  "18号楼番茄牛肉汤",
+  "11号楼喜家德",
+  "11号楼吉野家",
+  "龙湖-潮珍轩",
+  "龙湖-延奶奶朝鲜族汤饭",
+  "龙湖-青鸟日式双拼饭",
+  "龙湖-云鼎香过桥米线",
+  "龙湖-沂蒙炒鸡",
+  "龙湖-姥家戴记麻辣烫",
+  "龙湖-思味园米线",
+  "龙湖-新疆炒米粉",
+  "龙湖-琦桢米线",
+  "龙湖-山东菜馆",
+  "龙湖-全州拌饭",
+  "龙湖-仁杉食堂",
+  "龙湖-望江南面馆",
+  "龙湖-蜀香园烤鱼炒菜盖饭",
+  "龙湖-那日侠布车",
+  "龙湖-渝记小面",
+  "龙湖-兰州拉面",
+  "龙湖-阿Q桶饭"
+];
+
+const STORAGE_KEY = "lunch_picker_list";
+
+// ── 解析名称，提取区域前缀 ──
+function parseName(raw) {
+  const clean = raw.trim();
+  // 匹配 "X号楼" 或 "龙湖" 等前缀
+  const m = clean.match(/^([\d]+号楼|龙湖|[^\-]+)-?(.*)$/);
+  if (m && m[2]) {
+    return { location: m[1], name: m[2] };
+  }
+  // 纯名称无前缀
+  return { location: "", name: clean };
+}
+
+function getList() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    try {
+      const arr = JSON.parse(saved);
+      if (Array.isArray(arr) && arr.length > 0) return arr;
+    } catch(e) {}
+  }
+  return [...DEFAULT_RESTAURANTS];
+}
+
+function initEditor() {
+  document.getElementById("editor").value = getList().join("\n");
+}
+
+function saveList() {
+  const raw = document.getElementById("editor").value;
+  const arr = raw.split("\n").map(s => s.trim()).filter(Boolean);
+  if (arr.length < 3) {
+    alert("至少需要 3 家餐厅哦！");
+    return;
+  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+  alert(`✅ 已保存 ${arr.length} 家餐厅！`);
+}
+
+function resetList() {
+  if (!confirm("确定恢复为默认列表？")) return;
+  localStorage.removeItem(STORAGE_KEY);
+  document.getElementById("editor").value = DEFAULT_RESTAURANTS.join("\n");
+  alert("✅ 已恢复默认列表！");
+}
+
+// ── 核心：随机抽3家 ──
+function pick() {
+  const list = getList();
+  if (list.length < 3) {
+    alert("列表中餐厅不足 3 家，请先添加更多！");
+    return;
+  }
+
+  // Fisher-Yates shuffle，取前3
+  const arr = [...list];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  const chosen = arr.slice(0, 3);
+
+  const area = document.getElementById("result-area");
+  area.innerHTML = "";
+
+  const labels = ["🥇 今日首选", "🥈 备选二", "🥉 备选三"];
+  const colors  = ["#ff6b35", "#ffa94d", "#74c69d"];
+
+  chosen.forEach((raw, idx) => {
+    const { location, name } = parseName(raw);
+    const card = document.createElement("div");
+    card.className = "card";
+
+    card.innerHTML = `
+      <span class="badge" style="background:${colors[idx]}">${labels[idx]}</span>
+      <div class="card-number">0${idx + 1}</div>
+      <div class="card-name">${name}</div>
+      ${location ? `<div class="card-location">${location}</div>` : ""}
+    `;
+    area.appendChild(card);
+  });
+}
+
+// 初始化编辑器
+initEditor();
+</script>
+</body>
+</html>
