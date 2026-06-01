@@ -1,3 +1,3 @@
 # lunch-picker
 lunch-picker
-https://cuitogrb.github.io/lunch-pick/
+https://cuitogrb.github.io/lunch-picker/
